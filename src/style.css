@@ -1,0 +1,9 @@
+body {
+  font-family: sans-serif;
+}
+
+#weather-report {
+  background-color: blueviolet;
+  width: 10px;
+  height: 10px;
+}
