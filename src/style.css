@@ -1,9 +1,146 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,700);
+@import url(https://cdnjs.cloudflare.com/ajax/libs/weather-icons/1.2/css/weather-icons.min.css);
+
+@keyframes background-pan {
+  from {
+    background-position: 0% center;
+  }
+
+  to {
+    background-position: 200% center;
+  }
+}
+
 body {
+  animation: background-pan 20s linear infinite;
+  background: linear-gradient(to right, #7474bf, #348ac7, #7474bf);
+  background-size: 200%;
   font-family: sans-serif;
+  justify-content: center;
+  display: flex;
 }
 
 #weather-report {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -15rem;
+  margin-left: -25rem;
   background-color: blueviolet;
-  width: 10px;
-  height: 10px;
+  width: 50rem;
+  height: 30rem;
+  border-radius: 10px;
+}
+
+#weather-overview {
+  margin: 20px;
+  width: 2000px;
+  /* border: black 1px solid; */
+  height: 200px;
+  display: flex;
+  position: relative;
+}
+.current-weather-group {
+  margin: 2px;
+  display: flex;
+  position: relative;
+}
+
+.city-current-weather {
+  width: 400px;
+  height: 200px;
+  font-family: 'Open Sans';
+}
+
+.city-temperature-area {
+  background: rgb(41, 41, 41);
+  width: 220px;
+  height: 200px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.weather-icon-area {
+  background: rgb(237, 237, 237);
+  width: 180px;
+  height: 130px;
+  margin-left: 220px;
+  font-family: weathericons;
+  font-size: 80px;
+  text-align: center;
+  display: block;
+  padding: 20px 0 0;
+}
+
+.rain-wind-area {
+  background: rgb(42, 178, 234);
+  width: 180px;
+  height: 50px;
+  margin-left: 220px;
+}
+
+.temperature {
+  font-size: 80px;
+  text-align: center;
+  display: block;
+  font-weight: 300;
+  color: rgb(255, 255, 255);
+  padding: 20px 0 0;
+}
+
+.city {
+  color: rgb(255, 255, 255);
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 20px;
+  display: block;
+}
+
+.rain-wind-area {
+  width: 180px;
+  height: 50px;
+  bottom: 0;
+  right: 0;
+  background: rgb(42, 178, 234);
+  font-weight: 700;
+  color: rgb(255, 255, 255);
+  display: flex;
+}
+
+.wind-direction {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  font-size: 25px;
+  text-align: center;
+  vertical-align: middle;
+  padding-top: 7px;
+  padding-left: 10px;
+}
+
+.wind {
+  display: inline-block;
+  width: 50px;
+  right: -10px;
+  word-spacing: 60px;
+  text-overflow: wrap;
+  text-align: center;
+}
+.rain-icon {
+  font-family: weathericons;
+  font-size: 40px;
+  width: 25px;
+  top: 5px;
+  justify-content: center;
+  text-align: right;
+}
+.wind-icon {
+  font-family: weathericons;
+  font-size: 30px;
+  width: 40px;
+  padding-left: 10px;
+  justify-content: center;
+  text-align: center;
 }
