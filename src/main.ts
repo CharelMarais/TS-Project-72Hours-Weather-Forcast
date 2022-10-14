@@ -205,6 +205,7 @@ function returnDayOfTheWeek(day: number): string {
   }
 }
 
+// function to create in display grid showing weather 72 hour update
 function createDisplayGrid72Hours(city: string, cityArray: any): void {
   const weatherReportContainer = <HTMLDivElement>(
     document.getElementById('weather-report')
@@ -215,24 +216,26 @@ function createDisplayGrid72Hours(city: string, cityArray: any): void {
   let cityName: string = 'none';
   let lon: number = 0;
   let lat: number = 0;
-  let currentTime: number;
   let gmtDifference: number;
 
+  // for loop used to get related info from selected city
   for (let i: number = 0; i < cityArray.length; i++) {
     if (city === cityArray[i].name) {
-      const { name, longitude, latitude, time, gmtDiff } = cityArray[i];
+      const { name, longitude, latitude, gmtDiff } = cityArray[i];
       cityName = name;
       lon = longitude;
       lat = latitude;
-      currentTime = time;
       gmtDifference = gmtDiff;
     }
   }
+
+  // set innerHTML to update regarding responses from the API
   weatherReportHeading.innerHTML! += `${cityName} Weather Report 72 Hours`;
   getWeatherFromLocation(lon, lat).then((response) => {
     if (response.ok) {
       response.json().then((jsonResponse) => {
         for (let weatherData of jsonResponse.dataseries) {
+          // Dates used to add timepoint hours to current time and to get day of the week and time at each time point
           let currentTimeReading: Date = new Date();
           currentTimeReading.setTime(
             currentTimeReading.getTime() +
@@ -241,7 +244,6 @@ function createDisplayGrid72Hours(city: string, cityArray: any): void {
 
           let timePointHour: number = currentTimeReading.getHours();
           let timePointDay: number = currentTimeReading.getDay();
-          console.log(timePointDay);
 
           weatherReportContainer.innerHTML += `
             <div id="grid-item" class="report-grid-item">
@@ -264,27 +266,12 @@ function createDisplayGrid72Hours(city: string, cityArray: any): void {
       });
     }
   });
-
-  for (let i = 0; i < 24; i++) {
-    // weatherReportContainer.innerHTML += `
-    // <div id="grid-item-${i + 1}" class="report-grid-item">
-    //   <div class="grid-item-icon-block">
-    //     <div class="grid-weather-icon">&#xf008</div>
-    //     <div class="grid-timestamp">
-    //      8:00
-    //     </div>
-    //   </div>
-    //   <div class="grid-item-temperature">
-    //     27&#730
-    //   </div>
-    // </div>
-    // `;
-  }
 }
-
 // call functions
 updateCurrentCityWeather(cityVariables);
 createDisplayGrid72Hours('Johannesburg', cityVariables);
+
+// temp area Dirty Code
 
 getWeatherFromLocation(20, 20).then((response) => {
   if (response.ok) {
