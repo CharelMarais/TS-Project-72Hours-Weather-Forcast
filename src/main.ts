@@ -143,7 +143,6 @@ function calculateCorrectCityWeatherIcon(
       }
     }
   }
-  console.log(iconString);
   return iconString;
 }
 
