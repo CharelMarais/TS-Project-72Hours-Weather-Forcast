@@ -20,30 +20,35 @@ const johannesburg = {
   longitude: 28.04,
   latitude: -26.2,
   time: currentGmtTime + 2,
+  gmtDiff: 2,
 };
 const hongKong = {
   name: 'Hong Kong',
   longitude: 113.46,
   latitude: 22.99,
   time: currentGmtTime + 8,
+  gmtDiff: 8,
 };
 const newYork = {
   name: 'New York',
   longitude: -73.99,
   latitude: 40.72,
   time: currentGmtTime - 4,
+  gmtDiff: -4,
 };
 const london = {
   name: 'London',
   longitude: -0.11,
   latitude: 51.49,
   time: currentGmtTime + 1,
+  gmtDiff: 1,
 };
 const sydney = {
   name: 'Sydney',
   longitude: 151.2,
   latitude: -33.87,
   time: currentGmtTime + 11,
+  gmtDiff: 11,
 };
 
 // variable array to get the info stored in the variables
@@ -178,19 +183,121 @@ function calculateWindSpeed(speed: number): number {
   return calculatedSpeed;
 }
 
+// function to return day of the week
+function returnDayOfTheWeek(day: number): string {
+  switch (day) {
+    case 0:
+      return 'Sun';
+    case 1:
+      return 'Mon';
+    case 2:
+      return 'Tue';
+    case 3:
+      return 'Wen';
+    case 4:
+      return 'Thu';
+    case 5:
+      return 'Fri';
+    case 6:
+      return 'Sat';
+    default:
+      return 'none';
+  }
+}
+
+function createDisplayGrid72Hours(city: string, cityArray: any): void {
+  const weatherReportContainer = <HTMLDivElement>(
+    document.getElementById('weather-report')
+  );
+  const weatherReportHeading = <HTMLDivElement>(
+    document.getElementById('weather-report-heading')
+  );
+  let cityName: string = 'none';
+  let lon: number = 0;
+  let lat: number = 0;
+  let currentTime: number;
+  let gmtDifference: number;
+
+  for (let i: number = 0; i < cityArray.length; i++) {
+    if (city === cityArray[i].name) {
+      const { name, longitude, latitude, time, gmtDiff } = cityArray[i];
+      cityName = name;
+      lon = longitude;
+      lat = latitude;
+      currentTime = time;
+      gmtDifference = gmtDiff;
+    }
+  }
+  weatherReportHeading.innerHTML! += `${cityName} Weather Report 72 Hours`;
+  getWeatherFromLocation(lon, lat).then((response) => {
+    if (response.ok) {
+      response.json().then((jsonResponse) => {
+        for (let weatherData of jsonResponse.dataseries) {
+          let currentTimeReading: Date = new Date();
+          currentTimeReading.setTime(
+            currentTimeReading.getTime() +
+              (gmtDifference + weatherData.timepoint - 2) * 60 * 60 * 1000
+          );
+
+          let timePointHour: number = currentTimeReading.getHours();
+          let timePointDay: number = currentTimeReading.getDay();
+          console.log(timePointDay);
+
+          weatherReportContainer.innerHTML += `
+            <div id="grid-item" class="report-grid-item">
+              <div class="grid-item-icon-block">
+                <div class="grid-weather-icon">&#x${calculateCorrectCityWeatherIcon(
+                  weatherData.cloudcover,
+                  weatherData.prec_type,
+                  timePointHour
+                )}</div>
+                <div class="grid-timestamp">
+                ${returnDayOfTheWeek(timePointDay)} ${timePointHour}:00
+                </div>
+              </div>
+              <div class="grid-item-temperature">
+                ${weatherData.temp2m}&#730
+              </div>
+            </div>
+            `;
+        }
+      });
+    }
+  });
+
+  for (let i = 0; i < 24; i++) {
+    // weatherReportContainer.innerHTML += `
+    // <div id="grid-item-${i + 1}" class="report-grid-item">
+    //   <div class="grid-item-icon-block">
+    //     <div class="grid-weather-icon">&#xf008</div>
+    //     <div class="grid-timestamp">
+    //      8:00
+    //     </div>
+    //   </div>
+    //   <div class="grid-item-temperature">
+    //     27&#730
+    //   </div>
+    // </div>
+    // `;
+  }
+}
+
+// call functions
 updateCurrentCityWeather(cityVariables);
+createDisplayGrid72Hours('Johannesburg', cityVariables);
 
 getWeatherFromLocation(20, 20).then((response) => {
   if (response.ok) {
     response.json().then((jsonResponse) => {
+      console.log(jsonResponse);
       for (let weatherData of jsonResponse.dataseries) {
-        weatherTimestamp.push(weatherData.timepoint);
-        weatherTemperature.push(weatherData.temp2m);
-        weatherPrecipitationType.push(weatherData.prec_type);
-        weatherCloudCover.push(weatherData.cloudcover);
-        weatherHumidity.push(weatherData.rh2m);
-        weatherWindDirection.push(weatherData.wind10m.direction);
-        weatherWindSpeed.push(weatherData.wind10m.speed);
+        // weatherTimestamp.push(weatherData.timepoint);
+        // weatherTemperature.push(weatherData.temp2m);
+        // weatherPrecipitationType.push(weatherData.prec_type);
+        // weatherCloudCover.push(weatherData.cloudcover);
+        // weatherHumidity.push(weatherData.rh2m);
+        // weatherWindDirection.push(weatherData.wind10m.direction);
+        // weatherWindSpeed.push(weatherData.wind10m.speed);
       }
     });
   }
