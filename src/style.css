@@ -26,7 +26,11 @@ body {
   /* border: black 1px solid; */
   height: 200px;
   display: flex;
-  position: relative;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -450px;
+  margin-left: -935px;
 }
 .current-weather-group {
   margin: 2px;
@@ -84,6 +88,22 @@ body {
   font-weight: 600;
   font-size: 20px;
   display: block;
+  background: rgb(41, 41, 41);
+  margin: auto;
+  padding: 20px;
+  width: 190px;
+  border: none;
+}
+
+.city:hover {
+  background: rgb(53, 52, 52);
+  transition: 0.7s;
+}
+
+.city:active {
+  color: rgb(53, 52, 52);
+  background: rgb(237, 237, 237);
+  transition: 0.1s;
 }
 
 .rain-wind-area {
@@ -212,4 +232,82 @@ body {
   word-spacing: 4px;
   background: rgb(42, 178, 234);
   margin-left: -1px;
+}
+
+#weather-info-heading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 900px;
+  height: 70px;
+  z-index: 9;
+  margin-top: -100px;
+  margin-left: 256px;
+  justify-content: center;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 25px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgb(237, 237, 237);
+}
+
+#weather-info {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -120px;
+  margin-left: 480px;
+  background-color: blueviolet;
+  width: 450px;
+  height: 500px;
+  border-radius: 10px;
+}
+
+#weather-info-container {
+  background: rgb(41, 41, 41);
+  margin-top: 75px;
+  margin-left: 25px;
+  height: 400px;
+  width: 400px;
+}
+
+#weather-map-heading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 900px;
+  height: 70px;
+  z-index: 9;
+  margin-top: -100px;
+  margin-left: -1155px;
+  justify-content: center;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 25px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgb(237, 237, 237);
+}
+
+#weather-map {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -120px;
+  margin-left: -930px;
+  background-color: blueviolet;
+  width: 450px;
+  height: 500px;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  display: block;
+}
+
+#map {
+  margin-top: 75px;
+  margin-left: 25px;
+  height: 400px;
+  width: 400px;
 }

@@ -1,6 +1,8 @@
 import './style.css';
 import { getWeatherFromLocation } from './weather-services';
 
+// Time is intialize at 00 GMT
+
 // arrays to save data fetched from API
 let weatherTimestamp: number[] = [];
 let weatherTemperature: number[] = [];
@@ -14,54 +16,62 @@ let weatherWindSpeed: number[] = [];
 let currDate = new Date();
 let currentGmtTime: number = currDate.getHours() - 2;
 
+export interface City {
+  name: string;
+  longitude: number;
+  latitude: number;
+  time: number;
+  gmtDiff: number;
+}
+
 // Locations that can be selected at City's to view weather
-const johannesburg = {
-  name: 'Johannesburg',
-  longitude: 28.04,
-  latitude: -26.2,
-  time: currentGmtTime + 2,
+const pretoria: City = {
+  name: 'Pretoria',
+  longitude: 28.194351,
+  latitude: -25.751642,
+  time: currentGmtTime,
   gmtDiff: 2,
 };
-const hongKong = {
+const hongKong: City = {
   name: 'Hong Kong',
-  longitude: 113.46,
-  latitude: 22.99,
-  time: currentGmtTime + 8,
+  longitude: 114.159064,
+  latitude: 22.281076,
+  time: currentGmtTime,
   gmtDiff: 8,
 };
-const newYork = {
+const newYork: City = {
   name: 'New York',
-  longitude: -73.99,
-  latitude: 40.72,
-  time: currentGmtTime - 4,
+  longitude: -74.007339,
+  latitude: 40.700439,
+  time: currentGmtTime,
   gmtDiff: -4,
 };
-const london = {
+const london: City = {
   name: 'London',
-  longitude: -0.11,
-  latitude: 51.49,
-  time: currentGmtTime + 1,
+  longitude: -0.127287,
+  latitude: 51.5065,
+  time: currentGmtTime,
   gmtDiff: 1,
 };
-const sydney = {
+const sydney: City = {
   name: 'Sydney',
-  longitude: 151.2,
-  latitude: -33.87,
-  time: currentGmtTime + 11,
+  longitude: 151.208439,
+  latitude: -33.871836,
+  time: currentGmtTime,
   gmtDiff: 11,
 };
 
 // variable array to get the info stored in the variables
-let cityVariables = [johannesburg, hongKong, newYork, london, sydney];
+const cityVariables: City[] = [pretoria, hongKong, newYork, london, sydney];
 
 // function to update the current weather section for the City's
-function updateCurrentCityWeather(cityVariablesArray: any): void {
+export function updateCurrentCityWeather(): void {
   const cityCurrentWeatherContainer = <HTMLDivElement>(
     document.getElementById('weather-overview')
   );
   // for loop to loot thru the city's to get the info
-  for (let i: number = 0; i < cityVariablesArray.length; i++) {
-    const { name, longitude, latitude, time } = cityVariablesArray[i];
+  for (let i: number = 0; i < cityVariables.length; i++) {
+    const { name, longitude, latitude, time, gmtDiff } = cityVariables[i];
 
     // get response from API using the properties of the city variables
     getWeatherFromLocation(longitude, latitude).then((response) => {
@@ -69,12 +79,16 @@ function updateCurrentCityWeather(cityVariablesArray: any): void {
         response.json().then((jsonResponse) => {
           for (let cityWeatherData of jsonResponse.dataseries) {
             // if to check for the first/latest weather report in the dataseries
-            if (cityWeatherData.timepoint === 3) {
+            if (
+              cityWeatherData.timepoint === time + gmtDiff ||
+              cityWeatherData.timepoint === time + gmtDiff + 1 ||
+              cityWeatherData.timepoint === time + gmtDiff - 1
+            ) {
               // function to get icon to display using time and weather status
               let weatherIcon: string = calculateCorrectCityWeatherIcon(
                 cityWeatherData.cloudcover,
                 cityWeatherData.prec_type,
-                time
+                time + gmtDiff
               );
 
               // function that returns speed in relation to wind speed rating
@@ -88,7 +102,7 @@ function updateCurrentCityWeather(cityVariablesArray: any): void {
                 <div class="city-current-weather">
                   <div class="city-temperature-area">
                     <span class="temperature">${cityWeatherData.temp2m}&#730;</span>
-                    <span class="city">${name}</span>
+                    <button class="city" id="${name}" >${name}</button>
                   </div>
                   <div class="weather-icon-area">&#x${weatherIcon};</div>
                   <div class="rain-wind-area">
@@ -104,6 +118,90 @@ function updateCurrentCityWeather(cityVariablesArray: any): void {
       }
     });
   }
+}
+
+// function to create in display grid showing weather 72 hour update
+function createWeatherReport72Hours(city: string): void {
+  const weatherReportContainer = <HTMLDivElement>(
+    document.getElementById('weather-report')
+  );
+  const weatherReportHeading = <HTMLDivElement>(
+    document.getElementById('weather-report-heading')
+  );
+  const weatherInfo = <HTMLDivElement>(
+    document.getElementById('weather-info-container')
+  );
+
+  let cityName: string = 'none';
+  let lon: number = 0;
+  let lat: number = 0;
+  let gtmTime = 0;
+  let gmtDifference: number;
+
+  // for loop used to get related info from selected city
+  for (let i: number = 0; i < cityVariables.length; i++) {
+    if (city === cityVariables[i].name) {
+      const { name, longitude, latitude, time, gmtDiff } = cityVariables[i];
+      cityName = name;
+      lon = longitude;
+      lat = latitude;
+      gtmTime = time;
+      gmtDifference = gmtDiff;
+    }
+  }
+
+  // Updating map
+  let map = L.map('map').setView([lat, lon], 6);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution:
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map);
+  let marker = L.marker([lat, lon]).addTo(map);
+
+  // Update weather info
+
+  // set innerHTML to update regarding responses from the API
+  weatherReportHeading.innerHTML! += `${cityName} Weather Report 72 Hours`;
+  getWeatherFromLocation(lon, lat).then((response) => {
+    if (response.ok) {
+      response.json().then((jsonResponse) => {
+        for (let weatherData of jsonResponse.dataseries) {
+          // Dates used to add timepoint hours to current time and to get day of the week and time at each time point
+          let currentTimeReading: Date = new Date();
+          currentTimeReading.setTime(
+            currentTimeReading.getTime() +
+              (gmtDifference + weatherData.timepoint - 2 - gtmTime) *
+                60 *
+                60 *
+                1000
+          );
+
+          let timePointHour: number = currentTimeReading.getHours();
+          let timePointDay: number = currentTimeReading.getDay();
+
+          weatherReportContainer.innerHTML += `
+            <div class="report-grid-item">
+              <div class="grid-item-icon-block">
+                <div class="grid-weather-icon">&#x${calculateCorrectCityWeatherIcon(
+                  weatherData.cloudcover,
+                  weatherData.prec_type,
+                  timePointHour
+                )}</div>
+                <div class="grid-timestamp">
+                ${returnDayOfTheWeek(timePointDay)} ${timePointHour}:00
+                </div>
+              </div>
+              <div class="grid-item-temperature">
+                ${weatherData.temp2m}&#730
+              </div>
+            </div>
+            `;
+        }
+        weatherInfo.innerHTML += `<div>test</div>`;
+      });
+    }
+  });
 }
 
 // function that takes cloud cover, precipitation and time to get related icon string
@@ -204,73 +302,41 @@ function returnDayOfTheWeek(day: number): string {
   }
 }
 
-// function to create in display grid showing weather 72 hour update
-function createDisplayGrid72Hours(city: string, cityArray: any): void {
-  const weatherReportContainer = <HTMLDivElement>(
-    document.getElementById('weather-report')
-  );
-  const weatherReportHeading = <HTMLDivElement>(
-    document.getElementById('weather-report-heading')
-  );
-  let cityName: string = 'none';
-  let lon: number = 0;
-  let lat: number = 0;
-  let gmtDifference: number;
-
-  // for loop used to get related info from selected city
-  for (let i: number = 0; i < cityArray.length; i++) {
-    if (city === cityArray[i].name) {
-      const { name, longitude, latitude, gmtDiff } = cityArray[i];
-      cityName = name;
-      lon = longitude;
-      lat = latitude;
-      gmtDifference = gmtDiff;
-    }
-  }
-
-  // set innerHTML to update regarding responses from the API
-  weatherReportHeading.innerHTML! += `${cityName} Weather Report 72 Hours`;
-  getWeatherFromLocation(lon, lat).then((response) => {
-    if (response.ok) {
-      response.json().then((jsonResponse) => {
-        for (let weatherData of jsonResponse.dataseries) {
-          // Dates used to add timepoint hours to current time and to get day of the week and time at each time point
-          let currentTimeReading: Date = new Date();
-          currentTimeReading.setTime(
-            currentTimeReading.getTime() +
-              (gmtDifference + weatherData.timepoint - 2) * 60 * 60 * 1000
-          );
-
-          let timePointHour: number = currentTimeReading.getHours();
-          let timePointDay: number = currentTimeReading.getDay();
-
-          weatherReportContainer.innerHTML += `
-            <div id="grid-item" class="report-grid-item">
-              <div class="grid-item-icon-block">
-                <div class="grid-weather-icon">&#x${calculateCorrectCityWeatherIcon(
-                  weatherData.cloudcover,
-                  weatherData.prec_type,
-                  timePointHour
-                )}</div>
-                <div class="grid-timestamp">
-                ${returnDayOfTheWeek(timePointDay)} ${timePointHour}:00
-                </div>
-              </div>
-              <div class="grid-item-temperature">
-                ${weatherData.temp2m}&#730
-              </div>
-            </div>
-            `;
-        }
-      });
-    }
-  });
-}
 // call functions
-updateCurrentCityWeather(cityVariables);
-createDisplayGrid72Hours('Johannesburg', cityVariables);
+
+updateCurrentCityWeather();
+createWeatherReport72Hours('New York');
+
+const cityButtons = Array.from(document.getElementsByName('.city'));
+
+cityButtons.forEach((city) => {
+  city.addEventListener('click', () => console.log('test'));
+});
+
+// const pretoriaButton = <HTMLButtonElement>document.getElementById('Pretoria');
+// const hongKongButton = <HTMLButtonElement>document.getElementById('Hong Kong');
+// const newYorkButton = <HTMLButtonElement>document.getElementById('New York');
+// const londonButton = <HTMLButtonElement>document.getElementById('London');
+// const sydneyButton = <HTMLButtonElement>document.getElementById('Sydney');
+// pretoriaButton!.addEventListener('click', () => {
+//   createDisplayGrid72Hours('Pretoria');
+//   console.log('Test');
+// });
+// hongKongButton!.addEventListener('click', () =>
+//   createDisplayGrid72Hours('Hong Kong')
+// );
+// londonButton!.addEventListener('click', () =>
+//   createDisplayGrid72Hours('London')
+// );
+// newYorkButton!.addEventListener('click', () =>
+//   createDisplayGrid72Hours('New York')
+// );
+// sydneyButton!.addEventListener('click', () =>
+//   createDisplayGrid72Hours('Sydney')
+// );
 
 // temp area Dirty Code
+//------------------------------------------------------------------------------------------------------------------
 
 getWeatherFromLocation(20, 20).then((response) => {
   if (response.ok) {
