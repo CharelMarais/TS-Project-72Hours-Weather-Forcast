@@ -15,8 +15,28 @@ export interface Datasery {
   prec_type: string;
 }
 
-export interface RootObject {
+export interface WeatherRootObject {
   product: string;
   init: string;
   dataseries: Datasery[];
+}
+
+export interface TimeZoneRootObject {
+  timezone: string;
+  timezone_offset: number;
+  timezone_offset_with_dst: number;
+  date: string;
+  date_time: string;
+  date_time_txt: string;
+  date_time_wti: string;
+  date_time_ymd: Date;
+  date_time_unix: number;
+  time_24: string;
+  time_12: string;
+  week: number;
+  month: number;
+  year: number;
+  year_abbr: string;
+  is_dst: boolean;
+  dst_savings: number;
 }

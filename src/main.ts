@@ -1,16 +1,17 @@
 import './style.css';
 import { getWeatherFromLocation } from './weather-services';
+import { TimeZoneRootObject, WeatherRootObject } from './models';
+import L from 'leaflet';
+import { getLocationInfoFromCoordinates } from './timezone-services';
 
 // Time is intialize at 00 GMT
 
 // arrays to save data fetched from API
-let weatherTimestamp: number[] = [];
-let weatherTemperature: number[] = [];
-let weatherPrecipitationType: string[] = [];
-let weatherCloudCover: number[] = [];
-let weatherHumidity: number[] = [];
-let weatherWindDirection: string[] = [];
-let weatherWindSpeed: number[] = [];
+let weatherTemperaturesArray: number[] = [];
+let weatherPrecipitationTypeArray: string[] = [];
+let weatherCloudCoverArray: number[] = [];
+let weatherHumidityArray: number[] = [];
+let weatherWindSpeedArray: number[] = [];
 
 // get current hour for GMT time
 let currDate = new Date();
@@ -60,29 +61,57 @@ const sydney: City = {
   time: currentGmtTime,
   gmtDiff: 11,
 };
+const customCity: City = {
+  name: 'Custom',
+  longitude: 0,
+  latitude: 0,
+  time: currentGmtTime,
+  gmtDiff: 2,
+};
 
 // variable array to get the info stored in the variables
-const cityVariables: City[] = [pretoria, hongKong, newYork, london, sydney];
+const cityVariables: City[] = [
+  pretoria,
+  hongKong,
+  newYork,
+  london,
+  sydney,
+  customCity,
+];
+
+// Function to return timezone offset of a city
+function setCustomCityTimeZone(): void {
+  getLocationInfoFromCoordinates(
+    customCity.longitude,
+    customCity.latitude
+  ).then((response) => {
+    if (response.ok) {
+      response.json().then((jsonResponse: TimeZoneRootObject) => {
+        customCity.gmtDiff = jsonResponse.timezone_offset;
+      });
+    }
+  });
+}
 
 // function to update the current weather section for the City's
-export function updateCurrentCityWeather(): void {
+function updateCurrentCityWeather(): void {
   const cityCurrentWeatherContainer = <HTMLDivElement>(
     document.getElementById('weather-overview')
   );
   // for loop to loot thru the city's to get the info
-  for (let i: number = 0; i < cityVariables.length; i++) {
+  for (let i: number = 0; i < cityVariables.length - 1; i++) {
     const { name, longitude, latitude, time, gmtDiff } = cityVariables[i];
 
     // get response from API using the properties of the city variables
     getWeatherFromLocation(longitude, latitude).then((response) => {
       if (response.ok) {
-        response.json().then((jsonResponse) => {
+        response.json().then((jsonResponse: WeatherRootObject) => {
           for (let cityWeatherData of jsonResponse.dataseries) {
             // if to check for the first/latest weather report in the dataseries
             if (
-              cityWeatherData.timepoint === time + gmtDiff ||
-              cityWeatherData.timepoint === time + gmtDiff + 1 ||
-              cityWeatherData.timepoint === time + gmtDiff - 1
+              cityWeatherData.timepoint + gmtDiff === time + gmtDiff ||
+              cityWeatherData.timepoint + gmtDiff === time + gmtDiff + 1 ||
+              cityWeatherData.timepoint + gmtDiff === time + gmtDiff - 1
             ) {
               // function to get icon to display using time and weather status
               let weatherIcon: string = calculateCorrectCityWeatherIcon(
@@ -95,25 +124,29 @@ export function updateCurrentCityWeather(): void {
               let windSpeed: number = calculateWindSpeed(
                 cityWeatherData.wind10m.speed
               );
-
               // Set innerhtml to loop for every city listed
               cityCurrentWeatherContainer.innerHTML += `
               <div class="current-weather-group">
                 <div class="city-current-weather">
                   <div class="city-temperature-area">
                     <span class="temperature">${cityWeatherData.temp2m}&#730;</span>
-                    <button class="city" id="${name}" >${name}</button>
+                    <button class="city-button" id="${name}">${name}</button>
                   </div>
                   <div class="weather-icon-area">&#x${weatherIcon};</div>
                   <div class="rain-wind-area">
                     <span class="wind-direction">${cityWeatherData.wind10m.direction}</span>
                     <span class="wind-icon">&#xf050;</span>
-                    <span class="wind">+${windSpeed} m/s</span>
+                    <span class="wind-speed">+${windSpeed} m/s</span>
                   </div>
                 </div>
               </div>`;
             }
           }
+          Array.from(document.querySelectorAll('.city-button')).map((btn) =>
+            btn.addEventListener('click', () =>
+              createWeatherReport72Hours(btn.id)
+            )
+          );
         });
       }
     });
@@ -121,7 +154,7 @@ export function updateCurrentCityWeather(): void {
 }
 
 // function to create in display grid showing weather 72 hour update
-function createWeatherReport72Hours(city: string): void {
+export function createWeatherReport72Hours(city: string): void {
   const weatherReportContainer = <HTMLDivElement>(
     document.getElementById('weather-report')
   );
@@ -131,6 +164,9 @@ function createWeatherReport72Hours(city: string): void {
   const weatherInfo = <HTMLDivElement>(
     document.getElementById('weather-info-container')
   );
+  weatherReportContainer.innerHTML = ``;
+  weatherReportHeading.innerHTML! = ``;
+  weatherInfo.innerHTML = ``;
 
   let cityName: string = 'none';
   let lon: number = 0;
@@ -138,7 +174,7 @@ function createWeatherReport72Hours(city: string): void {
   let gtmTime = 0;
   let gmtDifference: number;
 
-  // for loop used to get related info from selected city
+  // for loop used to get related info from selected city FIND
   for (let i: number = 0; i < cityVariables.length; i++) {
     if (city === cityVariables[i].name) {
       const { name, longitude, latitude, time, gmtDiff } = cityVariables[i];
@@ -150,14 +186,14 @@ function createWeatherReport72Hours(city: string): void {
     }
   }
 
-  // Updating map
-  let map = L.map('map').setView([lat, lon], 6);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
-  let marker = L.marker([lat, lon]).addTo(map);
+  // Map Marker Update
+  if (marker) {
+    marker.setLatLng([lat, lon]);
+  } else {
+    marker = L.marker([lat, lon]).addTo(map);
+  }
+  map.invalidateSize();
+  map.setView([lat, lon], 6);
 
   // Update weather info
 
@@ -167,6 +203,12 @@ function createWeatherReport72Hours(city: string): void {
     if (response.ok) {
       response.json().then((jsonResponse) => {
         for (let weatherData of jsonResponse.dataseries) {
+          weatherTemperaturesArray.push(weatherData.temp2m);
+          weatherCloudCoverArray.push(weatherData.cloudcover);
+          weatherHumidityArray.push(weatherData.rh2m);
+          weatherWindSpeedArray.push(weatherData.wind10m.speed);
+          weatherPrecipitationTypeArray.push(weatherData.prec_type);
+
           // Dates used to add timepoint hours to current time and to get day of the week and time at each time point
           let currentTimeReading: Date = new Date();
           currentTimeReading.setTime(
@@ -198,10 +240,109 @@ function createWeatherReport72Hours(city: string): void {
             </div>
             `;
         }
-        weatherInfo.innerHTML += `<div>test</div>`;
+
+        // Set info that gets showed for the weather info screen
+
+        let maxTemp: number = Math.max(...weatherTemperaturesArray);
+        let minTemp: number = Math.min(...weatherTemperaturesArray);
+        let avgTemp: number =
+          weatherTemperaturesArray.reduce((a, b) => a + b, 0) /
+          weatherTemperaturesArray.length;
+        let avgCloudCover: number =
+          weatherCloudCoverArray.reduce((a, b) => a + b, 0) /
+          weatherCloudCoverArray.length;
+        let avgWindSpeed: number =
+          weatherWindSpeedArray.reduce((a, b) => a + b, 0) /
+          weatherWindSpeedArray.length;
+
+        let mostPrevalentPrecType: string =
+          calculateMostPrevalentPrecipitationType(
+            weatherPrecipitationTypeArray
+          );
+
+        weatherInfo.innerHTML += `
+        <div class="info-icon-container">
+          <span class="info-headings">Most Prevalent Precipitation: ${
+            mostPrevalentPrecType === 'none' ? 'clear' : mostPrevalentPrecType
+          }</span>
+          <span class="info-icon">&#x${calculateCorrectCityWeatherIcon(
+            Math.round(avgCloudCover),
+            mostPrevalentPrecType,
+            12
+          )}</span>
+        </div>
+        <div class="info-grid">
+          <div class="info">
+            <span class="info-headings">Max Temperature</span>
+            <span class="info-details">${maxTemp}&#730</span>
+          </div>
+          <div class="info">
+            <span class="info-headings">Min Temperature</span>
+            <span class="info-details">${minTemp}&#730</span>
+          </div>
+          <div class="info">
+            <span class="info-headings">Average Temperature</span>
+            <span class="info-details">${Math.round(avgTemp)}&#730</span>
+          </div>
+          <div class="info">
+            <span class="info-headings">Average Wind Speed</span>
+            <span class="info-details">+${calculateWindSpeed(
+              Math.round(avgWindSpeed)
+            )} <span style="font-size: 20px;">m/s</span></span>
+          </div>
+        </div>`;
+
+        // clear arrays for next iteration
+
+        weatherCloudCoverArray = [];
+        weatherHumidityArray = [];
+        weatherPrecipitationTypeArray = [];
+        weatherTemperaturesArray = [];
+        weatherWindSpeedArray = [];
       });
     }
   });
+}
+
+function calculateMostPrevalentPrecipitationType(precArray: string[]): string {
+  // get the prec_type that was most prevalent
+  // create object with counted prec_types
+  let maxCounted: number;
+  let maxRelatedIndex: number;
+  let precipitationCountArray: number[] = [];
+
+  let precipitationCount = precArray.reduce(function (obj: any, prec: string) {
+    if (!obj[prec]) {
+      obj[prec] = 1;
+    } else {
+      obj[prec]++;
+    }
+    return obj;
+  }, {});
+
+  precipitationCountArray.map(() => {
+    return 0;
+  });
+
+  // use expected perc_type to populate array if it doesnt exist show 0
+  precipitationCountArray = [
+    precipitationCount.none ? precipitationCount.none : 0,
+    precipitationCount.rain ? precipitationCount.rain : 0,
+    precipitationCount.snow ? precipitationCount.snow : 0,
+  ];
+
+  // 0 = none, 1 = rain, 2 = snow
+  // Get max amount from array and use index to determine Most Prevalent Prec
+  maxCounted = Math.max(...precipitationCountArray);
+  maxRelatedIndex = precipitationCountArray.indexOf(maxCounted);
+
+  if (maxRelatedIndex === 0) {
+    return 'none';
+  } else if (maxRelatedIndex === 1) {
+    return 'rain';
+  } else {
+    return 'snow';
+  }
 }
 
 // function that takes cloud cover, precipitation and time to get related icon string
@@ -219,6 +360,14 @@ function calculateCorrectCityWeatherIcon(
     } else {
       // Night Time
       iconString = 'f036';
+    }
+  } else if (precType === 'snow') {
+    if (time > 5 && time < 19) {
+      // Day Time
+      iconString = 'f065';
+    } else {
+      // Night Time
+      iconString = 'f066';
     }
   } else {
     if (time > 5 && time < 19) {
@@ -302,55 +451,27 @@ function returnDayOfTheWeek(day: number): string {
   }
 }
 
+// Initializing map
+let map = L.map('map').setView([pretoria.latitude, pretoria.longitude], 6);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution:
+    '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+}).addTo(map);
+let marker: L.Marker;
+
+// Onmap Click event to show custom weather for marked area
+map.on('click', function (ev) {
+  customCity.latitude = ev.latlng.lat;
+  customCity.longitude = ev.latlng.lng;
+  setCustomCityTimeZone();
+  marker.setLatLng(ev.latlng); // ev is an event object (MouseEvent in this case)
+
+  setTimeout(function () {
+    createWeatherReport72Hours('Custom');
+  }, 500);
+});
+
 // call functions
-
 updateCurrentCityWeather();
-createWeatherReport72Hours('New York');
-
-const cityButtons = Array.from(document.getElementsByName('.city'));
-
-cityButtons.forEach((city) => {
-  city.addEventListener('click', () => console.log('test'));
-});
-
-// const pretoriaButton = <HTMLButtonElement>document.getElementById('Pretoria');
-// const hongKongButton = <HTMLButtonElement>document.getElementById('Hong Kong');
-// const newYorkButton = <HTMLButtonElement>document.getElementById('New York');
-// const londonButton = <HTMLButtonElement>document.getElementById('London');
-// const sydneyButton = <HTMLButtonElement>document.getElementById('Sydney');
-// pretoriaButton!.addEventListener('click', () => {
-//   createDisplayGrid72Hours('Pretoria');
-//   console.log('Test');
-// });
-// hongKongButton!.addEventListener('click', () =>
-//   createDisplayGrid72Hours('Hong Kong')
-// );
-// londonButton!.addEventListener('click', () =>
-//   createDisplayGrid72Hours('London')
-// );
-// newYorkButton!.addEventListener('click', () =>
-//   createDisplayGrid72Hours('New York')
-// );
-// sydneyButton!.addEventListener('click', () =>
-//   createDisplayGrid72Hours('Sydney')
-// );
-
-// temp area Dirty Code
-//------------------------------------------------------------------------------------------------------------------
-
-getWeatherFromLocation(20, 20).then((response) => {
-  if (response.ok) {
-    response.json().then((jsonResponse) => {
-      console.log(jsonResponse);
-      for (let weatherData of jsonResponse.dataseries) {
-        // weatherTimestamp.push(weatherData.timepoint);
-        // weatherTemperature.push(weatherData.temp2m);
-        // weatherPrecipitationType.push(weatherData.prec_type);
-        // weatherCloudCover.push(weatherData.cloudcover);
-        // weatherHumidity.push(weatherData.rh2m);
-        // weatherWindDirection.push(weatherData.wind10m.direction);
-        // weatherWindSpeed.push(weatherData.wind10m.speed);
-      }
-    });
-  }
-});
+createWeatherReport72Hours('Pretoria');
