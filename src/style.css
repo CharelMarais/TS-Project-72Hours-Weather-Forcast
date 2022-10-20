@@ -11,6 +11,10 @@
   }
 }
 
+:root {
+  --gray-background: rgba(88, 90, 98, 0.8);
+}
+
 body {
   animation: background-pan 20s linear infinite;
   background: linear-gradient(to right, #7474bf, #348ac7, #7474bf);
@@ -62,7 +66,7 @@ body {
 }
 
 .weather-icon-area {
-  background: rgb(237, 237, 237);
+  background: rgb(210, 217, 222);
   width: 170px;
   height: 130px;
   margin-left: 200px;
@@ -173,7 +177,7 @@ body {
   left: 50%;
   margin-top: -200px;
   margin-left: -450px;
-  background-color: rgba(138, 43, 226, 0.6);
+  background-color: var(--gray-background);
   width: 900px;
   height: 500px;
   border-radius: 10px;
@@ -254,7 +258,7 @@ body {
   left: 50%;
   margin-top: -120px;
   margin-left: 480px;
-  background-color: rgba(138, 43, 226, 0.6);
+  background-color: var(--gray-background);
   width: 450px;
   height: 500px;
   border-radius: 10px;
@@ -346,7 +350,7 @@ body {
   left: 50%;
   margin-top: -120px;
   margin-left: -930px;
-  background-color: rgba(138, 43, 226, 0.6);
+  background-color: var(--gray-background);
   width: 450px;
   height: 500px;
   border-radius: 10px;
