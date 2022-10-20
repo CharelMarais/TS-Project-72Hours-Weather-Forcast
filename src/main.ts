@@ -133,7 +133,7 @@ function updateCurrentCityWeather(): void {
                     <button class="city-button" id="${name}">${name}</button>
                   </div>
                   <div class="weather-icon-area">&#x${weatherIcon};</div>
-                  <div class="rain-wind-area">
+                  <div class="wind-area">
                     <span class="wind-direction">${cityWeatherData.wind10m.direction}</span>
                     <span class="wind-icon">&#xf050;</span>
                     <span class="wind-speed">+${windSpeed} m/s</span>
@@ -311,24 +311,54 @@ function calculateMostPrevalentPrecipitationType(precArray: string[]): string {
   let maxRelatedIndex: number;
   let precipitationCountArray: number[] = [];
 
-  let precipitationCount = precArray.reduce(function (obj: any, prec: string) {
-    if (!obj[prec]) {
-      obj[prec] = 1;
-    } else {
-      obj[prec]++;
-    }
-    return obj;
-  }, {});
+  interface IPrecipitationCount {
+    none: number;
+    rain: number;
+    snow: number;
+  }
 
-  precipitationCountArray.map(() => {
-    return 0;
-  });
+  // const uniqueCounts = new Map();
+
+  // for (let precipitationString of precArray) {
+  //   if (uniqueCounts.has(precipitationString)) {
+  //     uniqueCounts.set(precipitationString, uniqueCounts.get(precipitationString) ?? 0 + 1);
+  //   } else {
+  //     uniqueCounts.set(precipitationString, 1);
+  //   }
+  // }
+
+  // let bestTuple;
+  // for (const [key, val] of uniqueCounts {
+  //   if (!bestTuple || bestTuple && bestTuple[1] < val) {
+  //     bestTuple = [key, val]
+  //   }
+  // }
+
+  // return bestTuple[0];
+
+  let precipitationCount = precArray.reduce(
+    function (precipCount, prec) {
+      // const index = Object.keys(precipCount).indexOf(prec);
+      // if (index > -1) {
+      //   precipCount[index]++;
+      // }
+      if (prec === 'none') {
+        precipCount.none++;
+      } else if (prec === 'rain') {
+        precipCount.rain++;
+      } else if (prec === 'snow') {
+        precipCount.snow++;
+      }
+      return precipCount;
+    },
+    { none: 0, rain: 0, snow: 0 } as IPrecipitationCount
+  );
 
   // use expected perc_type to populate array if it doesnt exist show 0
   precipitationCountArray = [
-    precipitationCount.none ? precipitationCount.none : 0,
-    precipitationCount.rain ? precipitationCount.rain : 0,
-    precipitationCount.snow ? precipitationCount.snow : 0,
+    precipitationCount.none ?? 0,
+    precipitationCount.rain ?? 0,
+    precipitationCount.snow ?? 0,
   ];
 
   // 0 = none, 1 = rain, 2 = snow
