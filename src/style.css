@@ -46,7 +46,6 @@ body {
   margin-top: -450px;
   margin-left: -935px;
 }
-
 .current-weather-group {
   margin: 2px;
   display: flex;
@@ -221,7 +220,7 @@ body {
   text-align: center;
   vertical-align: middle;
   padding-top: 5px;
-  background: var(--offwhite-background);
+  background: rgb(237, 237, 237);
 }
 
 .grid-timestamp {
@@ -367,5 +366,4 @@ body {
   margin-left: 25px;
   height: 400px;
   width: 400px;
-  opacity: 0.8;
 }
