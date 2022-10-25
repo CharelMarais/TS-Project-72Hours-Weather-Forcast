@@ -40,3 +40,11 @@ export interface TimeZoneRootObject {
   is_dst: boolean;
   dst_savings: number;
 }
+
+export interface City {
+  name: string;
+  longitude: number;
+  latitude: number;
+  time: number;
+  gmtDiff: number;
+}

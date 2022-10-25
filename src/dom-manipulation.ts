@@ -1,8 +1,9 @@
 import './style.css';
 import { getWeatherFromLocation } from './weather-services';
-import { WeatherRootObject } from './models';
+import { City, WeatherRootObject } from './models';
 import L from 'leaflet';
 import * as main from './main';
+import * as utilities from './utilities';
 
 // arrays to save data fetched from API
 let weatherTemperaturesArray: number[] = [];
@@ -14,14 +15,6 @@ let weatherWindSpeedArray: number[] = [];
 // get current hour for GMT time
 let currDate = new Date();
 let currentGmtTime: number = currDate.getHours() - 2;
-
-export interface City {
-  name: string;
-  longitude: number;
-  latitude: number;
-  time: number;
-  gmtDiff: number;
-}
 
 // Locations that can be selected at City's to view weather
 const pretoria: City = {
@@ -98,14 +91,14 @@ export function updateCurrentCityWeather(): void {
               cityWeatherData.timepoint + gmtDiff === time + gmtDiff - 1
             ) {
               // function to get icon to display using time and weather status
-              let weatherIcon: string = main.calculateCorrectCityWeatherIcon(
+              const weatherIcon = utilities.calculateCorrectCityWeatherIcon(
                 cityWeatherData.cloudcover,
                 cityWeatherData.prec_type,
                 time + gmtDiff
               );
 
               // function that returns speed in relation to wind speed rating
-              let windSpeed: number = main.calculateWindSpeed(
+              const windSpeed = utilities.calculateWindSpeed(
                 cityWeatherData.wind10m.speed
               );
               // Set innerhtml to loop for every city listed
@@ -194,7 +187,7 @@ export function createWeatherReport72Hours(city: string): void {
           weatherPrecipitationTypeArray.push(weatherData.prec_type);
 
           // Dates used to add timepoint hours to current time and to get day of the week and time at each time point
-          let currentTimeReading: Date = new Date();
+          const currentTimeReading: Date = new Date();
           currentTimeReading.setTime(
             currentTimeReading.getTime() +
               (gmtDifference + weatherData.timepoint - 2 - gtmTime) *
@@ -203,19 +196,21 @@ export function createWeatherReport72Hours(city: string): void {
                 1000
           );
 
-          let timePointHour: number = currentTimeReading.getHours();
-          let timePointDay: number = currentTimeReading.getDay();
+          const timePointHour: number = currentTimeReading.getHours();
+          const timePointDay: number = currentTimeReading.getDay();
 
           weatherReportContainer.innerHTML += `
               <div class="report-grid-item">
                 <div class="grid-item-icon-block">
-                  <div class="grid-weather-icon">&#x${main.calculateCorrectCityWeatherIcon(
+                  <div class="grid-weather-icon">&#x${utilities.calculateCorrectCityWeatherIcon(
                     weatherData.cloudcover,
                     weatherData.prec_type,
                     timePointHour
                   )}</div>
                   <div class="grid-timestamp">
-                  ${main.returnDayOfTheWeek(timePointDay)} ${timePointHour}:00
+                  ${utilities.returnDayOfTheWeek(
+                    timePointDay
+                  )} ${timePointHour}:00
                   </div>
                 </div>
                 <div class="grid-item-temperature">
@@ -227,20 +222,20 @@ export function createWeatherReport72Hours(city: string): void {
 
         // Set info that gets showed for the weather info screen
 
-        let maxTemp: number = Math.max(...weatherTemperaturesArray);
-        let minTemp: number = Math.min(...weatherTemperaturesArray);
-        let avgTemp: number =
+        const maxTemp: number = Math.max(...weatherTemperaturesArray);
+        const minTemp: number = Math.min(...weatherTemperaturesArray);
+        const avgTemp: number =
           weatherTemperaturesArray.reduce((a, b) => a + b, 0) /
           weatherTemperaturesArray.length;
-        let avgCloudCover: number =
+        const avgCloudCover: number =
           weatherCloudCoverArray.reduce((a, b) => a + b, 0) /
           weatherCloudCoverArray.length;
-        let avgWindSpeed: number =
+        const avgWindSpeed: number =
           weatherWindSpeedArray.reduce((a, b) => a + b, 0) /
           weatherWindSpeedArray.length;
 
-        let mostPrevalentPrecType: string =
-          main.calculateMostPrevalentPrecipitationType(
+        const mostPrevalentPrecType: string =
+          utilities.calculateMostPrevalentPrecipitationType(
             weatherPrecipitationTypeArray
           );
 
@@ -249,7 +244,7 @@ export function createWeatherReport72Hours(city: string): void {
             <span class="info-headings">Most Prevalent Precipitation: ${
               mostPrevalentPrecType === 'none' ? 'clear' : mostPrevalentPrecType
             }</span>
-            <span class="info-icon">&#x${main.calculateCorrectCityWeatherIcon(
+            <span class="info-icon">&#x${utilities.calculateCorrectCityWeatherIcon(
               Math.round(avgCloudCover),
               mostPrevalentPrecType,
               12
@@ -270,7 +265,7 @@ export function createWeatherReport72Hours(city: string): void {
             </div>
             <div class="info">
               <span class="info-headings">Average Wind Speed</span>
-              <span class="info-details">+${main.calculateWindSpeed(
+              <span class="info-details">+${utilities.calculateWindSpeed(
                 Math.round(avgWindSpeed)
               )} <span style="font-size: 20px;">m/s</span></span>
             </div>
