@@ -120,7 +120,7 @@ export function returnDayOfTheWeek(day: number): string {
     case 2:
       return 'Tue';
     case 3:
-      return 'Wen';
+      return 'Wed';
     case 4:
       return 'Thu';
     case 5:
