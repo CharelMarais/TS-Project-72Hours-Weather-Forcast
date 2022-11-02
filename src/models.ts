@@ -3,7 +3,7 @@ export interface Wind10m {
   speed: number;
 }
 
-export interface Datasery {
+export interface WeatherDateSeries {
   timepoint: number;
   cloudcover: number;
   seeing: number;
@@ -18,7 +18,7 @@ export interface Datasery {
 export interface WeatherRootObject {
   product: string;
   init: string;
-  dataseries: Datasery[];
+  dataseries: WeatherDateSeries[];
 }
 
 export interface TimeZoneRootObject {
